@@ -310,7 +310,7 @@
         <span class="meta-value">Location not found</span>
       </div>`;
         
-        if (tags.GPSLatitude.value != NaN && tags.GPSLatitude.value != null && tags.GPSLatitude.value){
+        if (tags.GPSLatitude.value != NaN && tags.GPSLatitude.value != null && tags.GPSLatitude.value && tags.GPSLatitude.value != '0,0,0,0,0,0'){
             mapContainer.innerHTML = `
             <iframe frameborder="0" width="300" height="300" frameborder="0" scrolling="no"
 src="https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.5},${latitude- 0.5},${longitude+ 0.5},${latitude+ 0.5}&layer=mapnik&marker=${latitude},${longitude}"></iframe>`
