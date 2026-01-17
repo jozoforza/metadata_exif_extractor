@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Metadata Viewer</title>
+
+  <!-- Apple-like system font stack -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- EXIF.js for metadata parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/exifreader@4.12.0/dist/exif-reader.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f0f10;
+      --card: #1c1c1e;
+      --card-light: #2c2c2e;
+      --text: #ffffff;
+      --text-muted: #b0b0b5;
+      --accent: #0a84ff;
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #0f0f10, #141416);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    header {
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .upload-area {
+      border: 2px dashed var(--card-light);
+      border-radius: var(--radius);
+      padding: 32px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+
+      /* FIXED LAYOUT */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+    }
+
+    .upload-area:hover {
+      border-color: var(--accent);
+      background: rgba(10, 132, 255, 0.05);
+    }
+
+    .upload-area input {
+      display: none;
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .upload-area span {
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    .upload-area small {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .preview {
+      margin-bottom: 20px;
+      display: none; /* will be shown later */
+    }
+
+    .preview img {
+      width: 100%;
+      border-radius: 14px;
+    }
+
+    .metadata {
+      background: var(--card-light);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .metadata h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    #map{
+        margin-top: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .meta-item:last-child {
+      border-bottom: none;
+    }
+
+    .meta-key {
+      color: var(--text-muted);
+    }
+
+    .meta-value {
+      font-weight: 500;
+      text-align: right;
+    }
+
+    @media (min-width: 768px) {
+      .app {
+        max-width: 520px;
+        padding: 24px;
+      }
+
+      header h1 {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <header>
+      <h1>Image Metadata</h1>
+      <p>Upload a photo to inspect its hidden details</p>
+    </header>
+
+    <label class="upload-area">
+      <input type="file" accept="image/*" id="main_pic" />
+      <div class="upload-icon">📷</div>
+      <span>Tap to upload an image</span>
+      <small>JPG, PNG, HEIC</small>
+    </label>
+
+    <div class="preview">
+      <img src="" alt="Image preview" id="img1" />
+    </div>
+
+    <div class="metadata">
+      <h2>Metadata</h2>
+
+      <!-- Placeholder items -->
+      <div class="meta-item">
+        <span class="meta-key">Name</span>
+        <span class="meta-value">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Type</span>
+        <span class="meta-value">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Resolution</span>
+        <span class="meta-value">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Last Modified</span>
+        <span class="meta-value">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Date taken</span>
+        <span class="meta-value">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Model</span>
+        <span class="meta-value">—</span>
+      </div>
+
+      <div id="map"></div>
+      <h2 >All data:</h2>
+      <div class="all-tags" id="all-tags" style="
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #444;
+  border-radius:8px;
+  font-size:14px;
+  background:#1a1a1a;
+  white-space:normal;
+"></div>
+    </div>
+  </div>
+
+<script>
+
+  const input = document.getElementById('main_pic');
+  const previewContainer = document.querySelector('.preview');
+  const previewImage = document.querySelector('.preview img');
+  const metaValues = document.querySelectorAll('.meta-value');
+
+  const allTagsDiv = document.getElementById('all-tags');
+    allTagsDiv.innerHTML = '';
+
+  input.addEventListener('change', async () => {
+    metaValues[0].textContent = ''; // Device
+        metaValues[1].textContent = ''; // Date
+        metaValues[2].textContent = ''; // type
+        metaValues[3].textContent = ''; // Resolution
+        metaValues[4].textContent = '';
+        metaValues[5].textContent = '';
+
+    const file = input.files[0];
+    if (!file) return;
+
+    /* --- PREVIEW --- */
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImage.src = reader.result;
+      previewContainer.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+   
+
+    const img1 = document.getElementById("img1");
+    
+
+    const img = document.getElementById('main_pic').files[0];
+    console.log(img instanceof Blob);
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const tags = ExifReader.load(arrayBuffer);
+
+        console.log('All EXIF tags:', tags);
+
+        // Read device make (if exists)
+        const make = tags.Make ? tags.Make.description : '❌';
+        const model = tags.Model ? tags.Model.description : null;
+        const width = tags["Image Width"] ? tags["Image Width"].value : null;
+        const height = tags["Image Height"] ? tags["Image Height"].value : null;
+        const res = width? `${width}px ${height}px`: '❌'
+
+        const dateTaken = tags.DateTimeOriginal ? tags.DateTimeOriginal.description : '❌';
+
+        
+        const latitude = tags.GPSLatitude? tags.GPSLatitude.description : null;
+        const longitude = tags.GPSLongitude? tags.GPSLongitude.description: null;
+        
+
+        console.log(tags);
+        metaValues[0].textContent = file.name; // Device
+        metaValues[1].textContent = file.type; // Date
+        metaValues[2].textContent = res; // type
+        metaValues[3].textContent = new Date(file.lastModified).toLocaleString(); // Resolution
+        metaValues[4].textContent = dateTaken;
+        metaValues[5].textContent = model || make;
+
+        const mapContainer = document.getElementById('map');
+
+        
+
+        if (latitude !== null && longitude !== null) {
+            mapContainer.innerHTML = `
+            <iframe frameborder="0" width="300" height="300" frameborder="0" scrolling="no"
+src="https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.5},${latitude- 0.5},${longitude+ 0.5},${latitude+ 0.5}&layer=mapnik&marker=${latitude},${longitude}"></iframe>`
+            }else{
+
+                mapContainer.innerHTML = `
+            <div class="meta-item">
+        <span class="meta-key">Location</span>
+        <span class="meta-value">❌</span>
+      </div>
+            `;
+                
+            }
+
+for (const tagName in tags) {
+  if (tags.hasOwnProperty(tagName)) {
+    const tag = tags[tagName];
+    const value = tag.description || tag.value || 'N/A';
+    
+    const div = document.createElement('div');
+    div.textContent = `${tagName}: ${value}`; // each tag on its own line
+    allTagsDiv.appendChild(div);
+  }
+}
+
+
+        } 
+
+
+        
+        catch (error) {
+            console.error('Failed to read EXIF:', error);
+        }
+  });
+</script>
+
+</body>
+</html>
