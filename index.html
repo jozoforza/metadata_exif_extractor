@@ -241,6 +241,7 @@
   </div>
 
 <script>
+  
 
   const input = document.getElementById('main_pic');
   const previewContainer = document.querySelector('.preview');
@@ -248,9 +249,10 @@
   const metaValues = document.querySelectorAll('.meta-value');
 
   const allTagsDiv = document.getElementById('all-tags');
-    allTagsDiv.innerHTML = '';
+    
 
   input.addEventListener('change', async () => {
+    allTagsDiv.innerHTML = '';
     metaValues[0].textContent = ''; // Device
         metaValues[1].textContent = ''; // Date
         metaValues[2].textContent = ''; // type
@@ -324,7 +326,8 @@ src="https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.5},${l
             `;
                 
             }
-allTagsDiv.innerHTML = ""
+
+
 for (const tagName in tags) {
   if (tags.hasOwnProperty(tagName)) {
     const tag = tags[tagName];
