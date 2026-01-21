@@ -324,7 +324,7 @@ src="https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.5},${l
             `;
                 
             }
-
+allTagsDiv.innerHTML = ""
 for (const tagName in tags) {
   if (tags.hasOwnProperty(tagName)) {
     const tag = tags[tagName];
